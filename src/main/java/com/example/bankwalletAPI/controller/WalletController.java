@@ -27,12 +27,13 @@ public class WalletController {
         this.walletService = walletService;
     }
 
-    @Operation(summary = "Deposit funds", description = "Adds a positive amount to the specified user's wallet balance.")
+    @Operation(summary = "Deposit funds", description = "Adds funds to wallet. Converts to EUR if another currency is provided.")
     @PostMapping("/{userId}/deposit")
     public ResponseEntity<WalletDTO> deposit(
-            @Parameter(description = "ID of the user making the deposit") @PathVariable Long userId,
-            @Parameter(description = "Amount to add (must be > 0)") @RequestParam @Positive(message = "Deposit amount must be positive") BigDecimal amount) {
-        WalletDTO wallet = walletService.deposit(userId, amount);
+            @PathVariable Long userId,
+            @RequestParam @Positive BigDecimal amount,
+            @RequestParam(defaultValue = "EUR") String currency) {
+        WalletDTO wallet = walletService.deposit(userId, amount, currency);
         return new ResponseEntity<>(wallet, HttpStatus.OK);
     }
 

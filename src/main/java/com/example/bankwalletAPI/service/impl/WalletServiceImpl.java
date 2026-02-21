@@ -9,6 +9,7 @@ import com.example.bankwalletAPI.mapper.WalletMapper;
 import com.example.bankwalletAPI.repository.UserRepository;
 import com.example.bankwalletAPI.repository.WalletRepository;
 import com.example.bankwalletAPI.service.WalletService;
+import com.example.bankwalletAPI.service.external.CurrencyConverterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,23 +22,27 @@ public class WalletServiceImpl implements WalletService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final WalletMapper walletMapper;
+    private final CurrencyConverterService converterService;
 
 
     @Autowired
-    public WalletServiceImpl(UserRepository userRepository, WalletRepository walletRepository, WalletMapper walletMapper) {
+    public WalletServiceImpl(UserRepository userRepository, WalletRepository walletRepository, WalletMapper walletMapper, CurrencyConverterService converterService) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
         this.walletMapper = walletMapper;
+        this.converterService = converterService;
     }
 
     @Override
     @Transactional
-    public WalletDTO deposit(Long userId, BigDecimal amount) {
+    public WalletDTO deposit(Long userId, BigDecimal amount, String currency) {
+        BigDecimal amountInEur = converterService.convertToEur(currency, amount);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
         Wallet wallet = user.getWallet();
-        wallet.setBalance(wallet.getBalance().add(amount));
+        wallet.setBalance(wallet.getBalance().add(amountInEur));
 
         Wallet savedWallet = walletRepository.save(wallet);
         return walletMapper.walletToWalletDto(savedWallet);
