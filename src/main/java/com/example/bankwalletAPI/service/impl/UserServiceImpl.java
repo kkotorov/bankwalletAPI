@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         Wallet wallet = Wallet.builder()
-                .iban(UUID.randomUUID().toString())
+                .iban(generateBulgarianIban())
                 .balance(BigDecimal.ZERO)
                 .currency(Currency.EUR)
                 .build();
@@ -68,5 +68,15 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
         return userMapper.userToUserResponseDto(user);
+    }
+
+    private String generateBulgarianIban() {
+        String bankCode = "BGSB";
+        String randomSuffix = UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, 14)
+                .toUpperCase();
+
+        return "BG" + (10 + (int)(Math.random() * 89)) + bankCode + randomSuffix;
     }
 }
